@@ -51,8 +51,8 @@ def decode(x,S):
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
         f = h5py.File(data_path, "r")
-        start_slice = 10
-        r = 30
+        start_slice = 0
+        r = 1
         self.kspace    = f['kspace'][start_slice:start_slice+num_slice*r:r]
         self.kspace    = torch.from_numpy(self.kspace)
         
