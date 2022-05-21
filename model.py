@@ -3,17 +3,21 @@ import torch
 import torch.nn as nn
 import SupportingFunctions as sf
 
-# define convolution block (conv + BN + ReLU)
-def conv_block(in_channels, out_channels, relu=False):
-    layers = [
-        #define 2D Convolutions
-        nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
-        #define batch normalization
-        #nn.BatchNorm2d(out_channels)
-        ]
-    if relu: #add activation
-        layers.append(nn.ReLU())
-    return nn.Sequential(*layers)
+# define RB:residual block (conv + ReLU + conv + xScale)
+class RB(nn.Module):
+    def __init__(self, C=0.1):
+        super().__init__()
+        self.RBconv1 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.relu  = nn.ReLU()
+        self.RBconv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.C     = C
+    def forward(self, x):
+        y = self.RBconv1(x)
+        y = self.relu(y)
+        y = self.RBconv2(y)
+        y = y*self.C
+        y = y + x
+        return y
 
 # x0  : initial solution
 # zn  : Output of nth denoiser block
@@ -41,23 +45,51 @@ def DC_layer(x0,zn,L,S,mask,tol=0,cg_iter=10):
             
     return xn[None,:,:]
 
-# define MoDL based algorithm
-class Dw(nn.Module):
+# define ResNet Block
+class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = conv_block(2,  64, relu=True)
-        self.conv2 = conv_block(64, 64, relu=True)
-        self.conv3 = conv_block(64, 64, relu=True)
-        self.conv4 = conv_block(64, 64, relu=True)
-        self.conv5 = conv_block(64, 2,  relu=False)
+        self.conv1 = nn.Conv2d(2, 64, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.RB1   = RB()
+        self.RB2   = RB()
+        self.RB3   = RB()
+        self.RB4   = RB()
+        self.RB5   = RB()
+        self.RB6   = RB()
+        self.RB7   = RB()
+        self.RB8   = RB()
+        self.RB9   = RB()
+        self.RB10  = RB()
+        self.RB11  = RB()
+        self.RB12  = RB()
+        self.RB13  = RB()
+        self.RB14  = RB()
+        self.RB1  = RB()
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
         self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
     def forward(self, x):
         z = sf.ch1to2(x)[None,:,:,:].float()
         z = self.conv1(z)
-        z = self.conv2(z)
-        z = self.conv3(z)
+        r = self.conv2(z)
+        r = self.RB1(r)
+        r = self.RB2(r)
+        r = self.RB3(r)
+        r = self.RB4(r)
+        r = self.RB5(r)
+        r = self.RB6(r)
+        r = self.RB7(r)
+        r = self.RB8(r)
+        r = self.RB9(r)
+        r = self.RB10(r)
+        r = self.RB11(r)
+        r = self.RB12(r)
+        r = self.RB13(r)
+        r = self.RB14(r)
+        r = self.RB15(r)
+        r = self.conv3(r)
+        z = r + z
         z = self.conv4(z)
-        z = self.conv5(z)
         z = sf.ch2to1(z[0,:,:,:])
-        z = z + x
         return self.L, z
