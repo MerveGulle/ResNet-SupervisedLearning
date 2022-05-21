@@ -44,8 +44,8 @@ mask = dataset.mask.to(device)
 ####################################################
 ############## TEST CODE ###########################
 ####################################################
-denoiser = model.Dw().to(device)
-denoiser.load_state_dict(torch.load('model_t__fn0_100.pt'))
+denoiser = model.ResNet().to(device)
+denoiser.load_state_dict(torch.load('model_t__ResNet_100.pt'))
 denoiser.eval()
 for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
     with torch.no_grad():
