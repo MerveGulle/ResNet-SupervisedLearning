@@ -65,7 +65,7 @@ class ResNet(nn.Module):
         self.RB12  = RB()
         self.RB13  = RB()
         self.RB14  = RB()
-        self.RB1  = RB()
+        self.RB15  = RB()
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
         self.conv4 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
         self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
