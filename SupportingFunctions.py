@@ -57,7 +57,7 @@ def nmse(x,xref):
 # Structural Similarity Index (SSIM)
 # gives similarity index of x and y images 
 def ssim(x,y):
-    _,Nx,Ny = x.shape
+    _,Nx,Ny = x.shape 
     N = Nx*Ny
     mu_x = torch.mean(x)
     mu_y = torch.mean(y)
