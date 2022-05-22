@@ -45,14 +45,20 @@ def decode(x,S):
     y = ifft2(x)               # Inverse fourier transform
     y = y*torch.conj(S)
     y = y.sum(axis=3)
-    return y  
+    return y 
 
+# Normalised Mean Square Error (NMSE)
+# gives the nmse between x and xref
+def nmse(x,xref):
+    out1 = torch.sum(torch.real(x-xref)**2 + (torch.imag(x-xref)**2))
+    out2 = torch.sum(torch.real(xref-torch.mean(xref))**2 + (torch.imag(xref-torch.mean(xref))**2))
+    return out1/out2
 
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
         f = h5py.File(data_path, "r")
-        start_slice = 0
-        r = 1
+        start_slice = 10
+        r = 30
         self.kspace    = f['kspace'][start_slice:start_slice+num_slice*r:r]
         self.kspace    = torch.from_numpy(self.kspace)
         
