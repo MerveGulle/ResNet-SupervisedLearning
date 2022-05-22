@@ -54,6 +54,19 @@ def nmse(x,xref):
     out2 = torch.sum(torch.real(xref-torch.mean(xref))**2 + (torch.imag(xref-torch.mean(xref))**2))
     return out1/out2
 
+# Structural Similarity Index (SSIM)
+# gives similarity index of x and y images 
+def ssim(x,y):
+    _,Nx,Ny = x.shape
+    N = Nx*Ny
+    mu_x = torch.mean(x)
+    mu_y = torch.mean(y)
+    S_xx = (torch.sum((torch.real(x-mu_x))**2) + torch.sum((torch.imag(x-mu_x))**2))/(N-1)
+    S_yy = (torch.sum((torch.real(y-mu_y))**2) + torch.sum((torch.imag(y-mu_y))**2))/(N-1)
+    S_xy = (torch.sum(torch.real(x-mu_x)*torch.real(y-mu_y)) + torch.sum(torch.imag(x-mu_x)*torch.imag(y-mu_y)))/(N-1)
+    out = ((2*mu_x*mu_y)*(2*S_xy))/((mu_x**2+mu_y**2)*(S_xx+S_yy))
+    return torch.abs(out)
+
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
         f = h5py.File(data_path, "r")
