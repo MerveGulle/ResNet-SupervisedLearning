@@ -35,7 +35,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=300)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=20)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
@@ -64,7 +64,7 @@ for epoch in range(params['num_epoch']):
         
         optimizer.zero_grad()
         # Loss calculation
-        loss  = torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2))
+        loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape(axis=0)*xref.shape(axis=1))
         loss.requres_grad = True
         loss_arr[epoch]  += loss.item()/len(datasets['train_dataset'])
         loss.backward()
@@ -84,7 +84,7 @@ for epoch in range(params['num_epoch']):
             for k in range(params['K']):
                 L, zk = denoiser(xk)
                 xk = model.DC_layer(x0,zk,L,sens_map,mask)
-            loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))
+            loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape(axis=0)*xref.shape(axis=1))
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
 
 figure = plt.figure()

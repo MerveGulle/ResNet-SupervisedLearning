@@ -45,7 +45,7 @@ mask = dataset.mask.to(device)
 ############## TEST CODE ###########################
 ####################################################
 denoiser = model.ResNet().to(device)
-denoiser.load_state_dict(torch.load('model_t__ResNet_100.pt'))
+denoiser.load_state_dict(torch.load('model_t__ResNet_010.pt'))
 denoiser.eval()
 for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
     with torch.no_grad():
@@ -57,25 +57,61 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         for k in range(params['K']):
             L, zk = denoiser(xk)
             xk = model.DC_layer(x0,zk,L,sens_map,mask)
+            
+        xc = model.DC_layer(x0,x0,0,sens_map,mask)
         
+        nmse_0 = sf.nmse(x0,xref)
+        nmse_k = sf.nmse(xk,xref)
+        nmse_c = sf.nmse(xc,xref)
+        ssim_0 = sf.ssim(x0,xref)
+        ssim_k = sf.ssim(xk,xref)
+        ssim_c = sf.ssim(xc,xref)
         
         figure = plt.figure()
         plt.imshow(np.abs(x0.cpu().detach().numpy()[0,:,:]),cmap='gray')
         plt.title(f'zero_filled_slice:{index.item():03d}')
-        plt.axis('off')
+        ax = plt.gca()
+        label = ax.set_xlabel('NMSE:'+f'{nmse_0:,.3f}'+'\n'+
+                              'SSIM:'+f'{ssim_0:,.3f}', fontsize = 12)
+        ax.xaxis.set_label_coords(0.17, 0.13)
+        ax.xaxis.label.set_color('white')
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
         #plt.show()
-        figure.savefig('x0'+f'_fn_{i:03d}'+'.png')   
+        figure.savefig('x0'+f'_{i:03d}'+'.png')   
+        
+        figure = plt.figure()
+        plt.imshow(np.abs(xc.cpu().detach().numpy()[0,:,:]),cmap='gray')
+        plt.title(f'CG-SENSE_slice:{index.item():03d}')
+        ax = plt.gca()
+        label = ax.set_xlabel('NMSE:'+f'{nmse_c:,.3f}'+'\n'+
+                              'SSIM:'+f'{ssim_c:,.3f}', fontsize = 12)
+        ax.xaxis.set_label_coords(0.17, 0.13)
+        ax.xaxis.label.set_color('white')
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        #plt.show()
+        figure.savefig('x'+f'_CG_{i:03d}'+'.png') 
         
         figure = plt.figure()
         plt.imshow(np.abs(xk.cpu().detach().numpy()[0,:,:]),cmap='gray')
-        plt.title(f'MoDL_slice:{index.item():03d}')
-        plt.axis('off')
+        plt.title(f'ResNet_slice:{index.item():03d}')
+        ax = plt.gca()
+        label = ax.set_xlabel('NMSE:'+f'{nmse_k:,.3f}'+'\n'+
+                              'SSIM:'+f'{ssim_k:,.3f}', fontsize = 12)
+        ax.xaxis.set_label_coords(0.17, 0.13)
+        ax.xaxis.label.set_color('white')
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
         #plt.show()
-        figure.savefig('xk'+f'_fn_{i:03d}'+'.png')  
+        figure.savefig('x_ResNet'+f'_{i:03d}'+'.png') 
         
         figure = plt.figure()
         plt.imshow(np.abs(xref.cpu().detach().numpy()[0,:,:]),cmap='gray')
         plt.title(f'reference_slice:{index.item():03d}')
-        plt.axis('off')
+        ax = plt.gca()
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
         #plt.show()
-        figure.savefig('xref'+f'_fn_{i:03d}'+'.png')  
+        figure.savefig('xref'+f'_{i:03d}'+'.png')  
+
