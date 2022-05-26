@@ -8,7 +8,7 @@ import SupportingFunctions as sf
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 100),
+params = dict([('num_epoch', 2),
                ('batch_size', 1),
                ('learning_rate', 1e-3),
                ('num_workers', 0),          # It should be 0 for Windows machines
@@ -16,7 +16,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 10)])   
+               ('K', 1)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -35,7 +35,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=20)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
@@ -64,7 +64,7 @@ for epoch in range(params['num_epoch']):
         
         optimizer.zero_grad()
         # Loss calculation
-        loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape(axis=0)*xref.shape(axis=1))
+        loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape[1]*xref.shape[2])
         loss.requres_grad = True
         loss_arr[epoch]  += loss.item()/len(datasets['train_dataset'])
         loss.backward()
@@ -84,10 +84,13 @@ for epoch in range(params['num_epoch']):
             for k in range(params['K']):
                 L, zk = denoiser(xk)
                 xk = model.DC_layer(x0,zk,L,sens_map,mask)
-            loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape(axis=0)*xref.shape(axis=1))
+            loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape[1]*xref.shape[2])
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
 
 figure = plt.figure()
 n = np.arange(1,params['num_epoch']+1)
 plt.plot(n,loss_arr,n,loss_arr_valid)
 figure.savefig('loss_graph.png')
+
+torch.save(loss_arr, 'train_loss.pt')
+torch.save(loss_arr_valid, 'valid_loss.pt')
