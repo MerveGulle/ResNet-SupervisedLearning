@@ -90,6 +90,9 @@ for epoch in range(params['num_epoch']):
 figure = plt.figure()
 n = np.arange(1,params['num_epoch']+1)
 plt.plot(n,loss_arr,n,loss_arr_valid)
+plt.xlabel('epoch')
+plt.title('Loss Graph')
+plt.legend(['train loss', 'validation loss'])
 figure.savefig('loss_graph.png')
 
 torch.save(loss_arr, 'train_loss.pt')
