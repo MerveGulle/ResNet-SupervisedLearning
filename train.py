@@ -8,15 +8,15 @@ import SupportingFunctions as sf
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 2),
+params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 1e-3),
+               ('learning_rate', 5e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 1)])   
+               ('K', 10)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
