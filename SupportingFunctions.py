@@ -160,3 +160,21 @@ def prepare_test_loaders(test_dataset,params):
     loaders = dict([('test_loader', test_loader)])
 
     return loaders, datasets
+
+# Normalised L1-L2 loss calculation
+# loss = normalised L1 loss + normalised L2 loss
+def L1L2Loss(ref, out):
+    N = ref.size
+    diff = ref - out    
+    L1 = ((torch.sum(torch.real(diff))**2 + torch.sum(torch.real(diff)**2)) 
+          /(torch.sum(torch.real(ref))**2 + torch.sum(torch.real(ref)**2)))
+    L2 = torch.sum(torch.abs(diff)) / torch.sum(torch.abs(ref))
+    return (L1 + L2) / N
+
+
+
+
+
+
+
+

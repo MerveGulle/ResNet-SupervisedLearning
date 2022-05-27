@@ -64,7 +64,7 @@ for epoch in range(params['num_epoch']):
         
         optimizer.zero_grad()
         # Loss calculation
-        loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape[1]*xref.shape[2])
+        loss = sf.L1L2Loss(xref,xk)
         loss.requres_grad = True
         loss_arr[epoch]  += loss.item()/len(datasets['train_dataset'])
         loss.backward()
@@ -84,7 +84,7 @@ for epoch in range(params['num_epoch']):
             for k in range(params['K']):
                 L, zk = denoiser(xk)
                 xk = model.DC_layer(x0,zk,L,sens_map,mask)
-            loss  = (torch.sum(torch.real(xref - xk)**2 + (torch.imag(xref - xk)**2)))/(xref.shape[1]*xref.shape[2])
+            loss = sf.L1L2Loss(xref,xk)
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
 
 figure = plt.figure()
