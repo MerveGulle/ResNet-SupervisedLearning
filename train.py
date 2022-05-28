@@ -4,13 +4,14 @@ import torch
 import random
 from matplotlib import pyplot as plt
 import SupportingFunctions as sf
+import sys
 
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 5),
                ('batch_size', 1),
-               ('learning_rate', 2e-4),
+               ('learning_rate', 2e-2),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -60,7 +61,10 @@ for epoch in range(params['num_epoch']):
         optimizer.zero_grad()
         # Loss calculation
         loss = sf.L1L2Loss(xref, xk)
-        loss_arr[epoch]  += loss.item()/len(datasets['train_dataset'])
+        if (torch.isnan(loss)):
+            torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch:03d}'+ '.pt')
+            sys.exit()
+        loss_arr[epoch] += loss.item()/len(datasets['train_dataset'])
         loss.backward()
         
         # Optimize
@@ -82,11 +86,13 @@ for epoch in range(params['num_epoch']):
             # Loss calculation
             loss = sf.L1L2Loss(xref, xk)
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
+    
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
            Loss training: {loss_arr[epoch]:.8f}, \
            Loss validation: {loss_arr_valid[epoch]:.8f}')
     print ('-----------------------------')
+
 figure = plt.figure()
 n = np.arange(1,params['num_epoch']+1)
 plt.plot(n,loss_arr,n,loss_arr_valid)
