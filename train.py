@@ -9,9 +9,9 @@ import sys
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 5),
+params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 2e-2),
+               ('learning_rate', 2e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -43,6 +43,7 @@ mask = dataset.mask.to(device)
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 
 loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
@@ -69,6 +70,7 @@ for epoch in range(params['num_epoch']):
         
         # Optimize
         optimizer.step()
+        
         if ((epoch+1)%10==0):
           torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
     
@@ -86,6 +88,8 @@ for epoch in range(params['num_epoch']):
             # Loss calculation
             loss = sf.L1L2Loss(xref, xk)
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
+    
+    scheduler.step()
     
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
