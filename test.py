@@ -5,6 +5,7 @@ import random
 from matplotlib import pyplot as plt
 import SupportingFunctions as sf
 import os
+from skimage.metrics import structural_similarity as ssim
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 print('Test code has been started.')
@@ -12,7 +13,7 @@ print('Test code has been started.')
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 1e-3),
+               ('learning_rate', 1e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -45,7 +46,7 @@ mask = dataset.mask.to(device)
 ############## TEST CODE ###########################
 ####################################################
 denoiser = model.ResNet().to(device)
-denoiser.load_state_dict(torch.load('model_t__ResNet_010.pt'))
+denoiser.load_state_dict(torch.load('model_t__ResNet_060.pt'))
 denoiser.eval()
 for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
     with torch.no_grad():
@@ -60,15 +61,24 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
             
         xc = model.DC_layer(x0,x0,0,sens_map,mask)
         
+        
+        
         nmse_0 = sf.nmse(x0,xref)
         nmse_k = sf.nmse(xk,xref)
         nmse_c = sf.nmse(xc,xref)
-        ssim_0 = sf.ssim(x0,xref)
-        ssim_k = sf.ssim(xk,xref)
-        ssim_c = sf.ssim(xc,xref)
+        
+        xref = np.abs(xref.cpu().detach().numpy()[0,:,:])
+        x0 = np.abs(x0.cpu().detach().numpy()[0,:,:])
+        xc = np.abs(xc.cpu().detach().numpy()[0,:,:])
+        xk = np.abs(xk.cpu().detach().numpy()[0,:,:])
+        
+        data_range=xref.max() - xref.min()
+        ssim_0 = ssim(xref, x0, data_range=data_range)
+        ssim_c = ssim(xref, xc, data_range=data_range)
+        ssim_k = ssim(xref, xk, data_range=data_range)
         
         figure = plt.figure()
-        plt.imshow(np.abs(x0.cpu().detach().numpy()[0,:,:]),cmap='gray')
+        plt.imshow(x0,cmap='gray')
         plt.title(f'zero_filled_slice:{index.item():03d}')
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_0:,.3f}'+'\n'+
@@ -81,7 +91,7 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         figure.savefig('x0'+f'_{i:03d}'+'.png')   
         
         figure = plt.figure()
-        plt.imshow(np.abs(xc.cpu().detach().numpy()[0,:,:]),cmap='gray')
+        plt.imshow(xc,cmap='gray')
         plt.title(f'CG-SENSE_slice:{index.item():03d}')
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_c:,.3f}'+'\n'+
@@ -94,7 +104,7 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         figure.savefig('x'+f'_CG_{i:03d}'+'.png') 
         
         figure = plt.figure()
-        plt.imshow(np.abs(xk.cpu().detach().numpy()[0,:,:]),cmap='gray')
+        plt.imshow(xk,cmap='gray')
         plt.title(f'ResNet_slice:{index.item():03d}')
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_k:,.3f}'+'\n'+
@@ -107,7 +117,7 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         figure.savefig('x_ResNet'+f'_{i:03d}'+'.png') 
         
         figure = plt.figure()
-        plt.imshow(np.abs(xref.cpu().detach().numpy()[0,:,:]),cmap='gray')
+        plt.imshow(xref,cmap='gray')
         plt.title(f'reference_slice:{index.item():03d}')
         ax = plt.gca()
         ax.set_yticklabels([])
