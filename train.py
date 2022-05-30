@@ -17,7 +17,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 1)])   
+               ('K', 10)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -36,7 +36,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=100)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
@@ -62,9 +62,18 @@ for epoch in range(params['num_epoch']):
         optimizer.zero_grad()
         # Loss calculation
         loss = sf.L1L2Loss(xref, xk)
+        
         if (torch.isnan(loss)):
             torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch:03d}'+ '.pt')
+            print ('-----------------------------')
+            print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
+                   loss: {loss:.08f}, \
+                   index: {index}')
+            print ('-----------------------------')
+            torch.save(loss_arr, 'train_loss.pt')
+            torch.save(loss_arr_valid, 'valid_loss.pt')
             sys.exit()
+            
         loss_arr[epoch] += loss.item()/len(datasets['train_dataset'])
         loss.backward()
         
@@ -93,8 +102,8 @@ for epoch in range(params['num_epoch']):
     
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
-           Loss training: {loss_arr[epoch]:.8f}, \
-           Loss validation: {loss_arr_valid[epoch]:.8f}')
+           Loss training: {loss_arr[epoch]:.4f}, \
+           Loss validation: {loss_arr_valid[epoch]:.4f}')
     print ('-----------------------------')
 
 figure = plt.figure()
