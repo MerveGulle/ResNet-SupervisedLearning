@@ -63,9 +63,7 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         
         
         
-        nmse_0 = sf.nmse(x0,xref)
-        nmse_k = sf.nmse(xk,xref)
-        nmse_c = sf.nmse(xc,xref)
+        
         
         xref = np.abs(xref.cpu().detach().numpy()[0,:,:])
         x0 = np.abs(x0.cpu().detach().numpy()[0,:,:])
@@ -76,6 +74,9 @@ for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
         ssim_0 = ssim(xref, x0, data_range=data_range)
         ssim_c = ssim(xref, xc, data_range=data_range)
         ssim_k = ssim(xref, xk, data_range=data_range)
+        nmse_0 = sf.nmse(x0,xref)
+        nmse_k = sf.nmse(xk,xref)
+        nmse_c = sf.nmse(xc,xref)
         
         figure = plt.figure()
         plt.imshow(x0,cmap='gray')
