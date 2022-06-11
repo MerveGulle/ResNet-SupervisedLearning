@@ -17,7 +17,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 10)])   
+               ('K', 2)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -36,14 +36,14 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=100)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=10)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
 loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
