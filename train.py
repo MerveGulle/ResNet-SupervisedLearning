@@ -1,4 +1,4 @@
-import model
+import model_shared_weights as model
 import numpy as np
 import torch
 import random
