@@ -49,10 +49,11 @@ loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
 
 for epoch in range(params['num_epoch']):
-    for i, (x0, xref, sens_map, index) in enumerate(loaders['train_loader']):
+    for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['train_loader']):
         x0       = x0.to(device)
         xref     = xref.to(device)
         sens_map = sens_map.to(device)
+        kspace = kspace.to(device)
         # Forward pass
         xk = x0
         for k in range(params['K']):
@@ -83,11 +84,12 @@ for epoch in range(params['num_epoch']):
         if ((epoch+1)%10==0):
           torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
     
-    for i, (x0, xref, sens_map, index) in enumerate(loaders['valid_loader']):
+    for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['valid_loader']):
         with torch.no_grad():
             x0 = x0.to(device)
             xref = xref.to(device)
             sens_map = sens_map.to(device)
+            kspace = kspace.to(device)
             # Forward pass
             xk = x0
             for k in range(params['K']):

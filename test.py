@@ -48,11 +48,12 @@ mask = dataset.mask.to(device)
 denoiser = model.ResNet().to(device)
 denoiser.load_state_dict(torch.load('model_t__ResNet_090.pt'))
 denoiser.eval()
-for i, (x0, xref, sens_map, index) in enumerate(loaders['test_loader']):
+for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
     with torch.no_grad():
         x0 = x0.to(device)
         xref = xref.to(device)
         sens_map = sens_map.to(device)
+        kspace = kspace.to(device)
         # Forward pass
         xk = x0
         for k in range(params['K']):

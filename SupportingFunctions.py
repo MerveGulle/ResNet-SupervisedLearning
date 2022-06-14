@@ -77,14 +77,15 @@ class KneeDataset():
         self.xref = torch.empty(self.kspace.shape[0:3], dtype=torch.cfloat)
         self.R    = 1/(torch.abs(self.mask).sum()/(self.kspace.shape[1]*self.kspace.shape[2]))
         for i in range(self.kspace.shape[0]):
-            self.x0[i] = decode(self.kspace[i:i+1]*self.mask[None,:,:,None],self.sens_map[i:i+1])
-            norm_value = torch.max(torch.abs(self.x0[i:i+1]))
-            self.x0[i] = self.x0[i:i+1] / norm_value
+            norm_value = torch.max(torch.abs(self.kspace[i:i+1]))
+            self.kspace[i] = self.kspace[i:i+1] / norm_value
             
-            self.xref[i] = decode(self.kspace[i:i+1],self.sens_map[i:i+1]) / norm_value
+            self.x0[i] = decode(self.kspace[i:i+1]*self.mask[None,:,:,None],self.sens_map[i:i+1])
+            
+            self.xref[i] = decode(self.kspace[i:i+1],self.sens_map[i:i+1])
      
     def __getitem__(self,index):
-        return self.x0[index], self.xref[index], self.sens_map[index], index
+        return self.x0[index], self.xref[index], self.kspace[index], self.sens_map[index], index
     def __len__(self):
         return self.n_slices   
 
