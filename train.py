@@ -5,6 +5,7 @@ import random
 from matplotlib import pyplot as plt
 import SupportingFunctions as sf
 import sys
+from skimage.metrics import structural_similarity as ssim
 
 print('Training code has been started.')
 
@@ -17,7 +18,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 2)])   
+               ('K', 10)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -106,12 +107,16 @@ for epoch in range(params['num_epoch']):
           torch.save(loss_arr_valid, 'valid_loss.pt')
           
 #    scheduler.step()
-    
+    SSIM = (ssim(np.abs(xref.cpu().detach().numpy()[0,:,:]), 
+                 np.abs(xk.cpu().detach().numpy()[0,:,:]), 
+                 data_range=np.abs(xref.cpu().detach().numpy()[0,:,:].max() 
+                                   - np.abs(xref.cpu().detach().numpy()[0,:,:].min()))))
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
            Loss training: {loss_arr[epoch]:.4f}, \
            Loss validation: {loss_arr_valid[epoch]:.4f},  \
-           L: {L:.4f}    ')
+           L: {L:.4f}, \
+           SSIM: {SSIM:.4f}')
     print ('-----------------------------')
 
 figure = plt.figure()
