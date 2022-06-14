@@ -11,7 +11,7 @@ print('Training code has been started.')
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 2e-4),
+               ('learning_rate', 1e-3),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -36,7 +36,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=10)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=300)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 mask_full = torch.ones(mask.shape).to(device)
@@ -44,7 +44,7 @@ mask_full = torch.ones(mask.shape).to(device)
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
+#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
 loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
@@ -83,9 +83,6 @@ for epoch in range(params['num_epoch']):
         # Optimize
         optimizer.step()
         
-        if ((epoch+1)%10==0):
-          torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
-    
     for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['valid_loader']):
         with torch.no_grad():
             x0 = x0.to(device)
@@ -102,8 +99,13 @@ for epoch in range(params['num_epoch']):
             #loss = sf.L1L2Loss(xref, xk)
             loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask_full))
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
-    
-    scheduler.step()
+        
+        if ((epoch+1)%5==0):
+          torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
+          torch.save(loss_arr, 'train_loss.pt')
+          torch.save(loss_arr_valid, 'valid_loss.pt')
+          
+#    scheduler.step()
     
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
@@ -119,6 +121,3 @@ plt.xlabel('epoch')
 plt.title('Loss Graph')
 plt.legend(['train loss', 'validation loss'])
 figure.savefig('loss_graph.png')
-
-torch.save(loss_arr, 'train_loss.pt')
-torch.save(loss_arr_valid, 'valid_loss.pt')
