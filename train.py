@@ -103,7 +103,8 @@ for epoch in range(params['num_epoch']):
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
            Loss training: {loss_arr[epoch]:.4f}, \
-           Loss validation: {loss_arr_valid[epoch]:.4f}')
+           Loss validation: {loss_arr_valid[epoch]:.4f},  \
+           L: {L:.4f}    ')
     print ('-----------------------------')
 
 figure = plt.figure()
