@@ -39,6 +39,7 @@ device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_
 dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=10)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
+mask_full = torch.ones(mask.shape).to(device)
 
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
@@ -62,7 +63,8 @@ for epoch in range(params['num_epoch']):
         
         optimizer.zero_grad()
         # Loss calculation
-        loss = sf.L1L2Loss(xref, xk)
+        #loss = sf.L1L2Loss(xref, xk)
+        loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask_full))
         
         if (torch.isnan(loss)):
             torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch:03d}'+ '.pt')
@@ -97,7 +99,8 @@ for epoch in range(params['num_epoch']):
                 xk = model.DC_layer(x0,zk,L,sens_map,mask)
             
             # Loss calculation
-            loss = sf.L1L2Loss(xref, xk)
+            #loss = sf.L1L2Loss(xref, xk)
+            loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask_full))
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
     
     scheduler.step()
