@@ -93,3 +93,9 @@ class ResNet(nn.Module):
         z = self.conv4(z)
         z = sf.ch2to1(z[0,:,:,:])
         return self.L, z
+    
+def weights_init_normal(m):
+  if isinstance(m, nn.Conv2d):
+      nn.init.normal_(m.weight.data,mean=0.0,std=0.05)
+      if m.bias is not None:
+          nn.init.constant_(m.bias.data, 0)

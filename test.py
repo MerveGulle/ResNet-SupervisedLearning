@@ -13,7 +13,7 @@ print('Test code has been started.')
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 1e-4),
+               ('learning_rate', 1e-3),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -46,7 +46,7 @@ mask = dataset.mask.to(device)
 ############## TEST CODE ###########################
 ####################################################
 denoiser = model.ResNet().to(device)
-denoiser.load_state_dict(torch.load('model_t__ResNet_010.pt'))
+denoiser.load_state_dict(torch.load('model_t__ResNet_065.pt'))
 denoiser.eval()
 for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
     with torch.no_grad():

@@ -44,6 +44,7 @@ mask_full = torch.ones(mask.shape).to(device)
 
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
+denoiser.apply(model.weights_init_normal)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
 #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
