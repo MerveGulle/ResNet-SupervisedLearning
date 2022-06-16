@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 def fft2(img):
     _, Nx, Ny, Nc = img.shape
     # fft = torch.zeros((1, Nx, Ny, Nc), dtype=torch.cfloat)
-    fft = img
+    fft = torch.zeros(img.shape)
     for coil in np.arange(Nc):
         A               = torch.squeeze(img[0,:,:,coil])
         A               = torch.fft.ifftshift(A)
@@ -21,7 +21,7 @@ def fft2(img):
 def ifft2(kspace):
     _, Nx, Ny, Nc = kspace.shape
     # ifft = torch.zeros((1, Nx, Ny, Nc), dtype=torch.cfloat)
-    ifft = kspace
+    ifft = torch.zeros(kspace.shape)
     
     for coil in np.arange(Nc):
         A                  = torch.squeeze(kspace[0,:,:,coil])
@@ -34,9 +34,13 @@ def ifft2(kspace):
 # y = Ex: encoding one slice image to kspace: [1 Nx Ny] --> [1 Nx Ny Nc]
 # S: sensitivity map
 def encode(x,S,mask):
-    y = S*x[:,:,:,None]       # sensitivity map element-wise multiplication
-    y = fft2(y)             # Fourier transform
-    y = y*mask[None,:,:,None] # undersampling
+    if mask==None:
+        y = S*x[:,:,:,None]       # sensitivity map element-wise multiplication
+        y = fft2(y)             # Fourier transform
+    else:
+        y = S*x[:,:,:,None]       # sensitivity map element-wise multiplication
+        y = fft2(y)             # Fourier transform
+        y = y*mask[None,:,:,None] # undersampling
     return y
 
 # y = E'x: reconstruction from kspace to image space: [1 Nx Ny Nc] --> [1 Nx Ny]
@@ -57,8 +61,8 @@ def nmse(x,xref):
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
         f = h5py.File(data_path, "r")
-        start_slice = 0
-        r = 1
+        start_slice = 10
+        r = 40
         self.kspace    = f['kspace'][start_slice:start_slice+num_slice*r:r]
         self.kspace    = torch.from_numpy(self.kspace)
         

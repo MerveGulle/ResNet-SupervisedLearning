@@ -1,4 +1,4 @@
-import model_shared_weights as model
+import model
 import numpy as np
 import torch
 import random
@@ -18,7 +18,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 10)])   
+               ('K', 2)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'
@@ -37,7 +37,7 @@ g.manual_seed(0)
 device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_cpu']))) else 'cpu')
 
 # 2) Load Data
-dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=300)
+dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
 mask_full = torch.ones(mask.shape).to(device)
@@ -66,7 +66,7 @@ for epoch in range(params['num_epoch']):
         optimizer.zero_grad()
         # Loss calculation
         #loss = sf.L1L2Loss(xref, xk)
-        loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask_full))
+        loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask=None))
         
         if (torch.isnan(loss)):
             torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch:03d}'+ '.pt')
@@ -99,7 +99,7 @@ for epoch in range(params['num_epoch']):
             
             # Loss calculation
             #loss = sf.L1L2Loss(xref, xk)
-            loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask_full))
+            loss = sf.L1L2Loss(kspace, sf.encode(xk, sens_map, mask=None))
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
         
         if ((epoch+1)%5==0):
@@ -108,16 +108,20 @@ for epoch in range(params['num_epoch']):
           torch.save(loss_arr_valid, 'valid_loss.pt')
           
 #    scheduler.step()
+    '''
     SSIM = (ssim(np.abs(xref.cpu().detach().numpy()[0,:,:]), 
                  np.abs(xk.cpu().detach().numpy()[0,:,:]), 
                  data_range=np.abs(xref.cpu().detach().numpy()[0,:,:].max() 
                                    - np.abs(xref.cpu().detach().numpy()[0,:,:].min()))))
+    '''
+
+    NMSE = sf.nmse(np.abs(xk[0].cpu().numpy()), np.abs(xref[0].cpu().numpy()))
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
            Loss training: {loss_arr[epoch]:.4f}, \
            Loss validation: {loss_arr_valid[epoch]:.4f},  \
            L: {L:.4f}, \
-           SSIM: {SSIM:.4f}')
+           NMSE: {NMSE:.4f}')
     print ('-----------------------------')
 
 figure = plt.figure()
