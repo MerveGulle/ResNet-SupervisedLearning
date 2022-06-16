@@ -66,7 +66,7 @@ class ResNet(nn.Module):
         self.RB15  = RB()
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
-        self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
+        self.L = nn.Parameter(torch.tensor(0.0, requires_grad=True))
     def forward(self, x):
         z = sf.ch1to2(x)[None,:,:,:].float()
         z = self.conv1(z)

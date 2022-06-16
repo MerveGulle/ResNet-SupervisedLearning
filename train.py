@@ -40,7 +40,6 @@ device = torch.device('cuda' if (torch.cuda.is_available() and (not(params['use_
 dataset = sf.KneeDataset(train_data_path,train_coil_path, params['acc_rate'], num_slice=5)
 loaders, datasets= sf.prepare_train_loaders(dataset,params,g)
 mask = dataset.mask.to(device)
-mask_full = torch.ones(mask.shape).to(device)
 
 # 3) Create Model structure
 denoiser = model.ResNet().to(device)
