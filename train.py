@@ -1,4 +1,4 @@
-import model
+import model_shared_weights as model
 import numpy as np
 import torch
 import random
@@ -18,7 +18,7 @@ params = dict([('num_epoch', 100),
                ('save_flag', False),
                ('use_cpu', False),
                ('acc_rate', 4),
-               ('K', 2)])   
+               ('K', 3)])   
 
 ### PATHS          
 train_data_path  = 'Knee_Coronal_PD_RawData_300Slices_Train.h5'

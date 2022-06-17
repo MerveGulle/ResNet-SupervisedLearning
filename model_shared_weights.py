@@ -20,28 +20,47 @@ class RB(nn.Module):
 
 # x0  : initial solution
 # zn  : Output of nth denoiser block
-# L   : regularization coefficient
+# L   : regularization coefficient=quadratic relaxation parameter
 # tol : tolerance for breaking the CG iteration
+# (EHE + LI)xn = x0 + L*zn, DC_layer solves xn
+'''
+class DC_layer(nn.Module):
+    def __init__(self, L):
+        super().__init__()
+        # initialization of quadratic relaxation parameter (mu)
+        self.L = nn.Parameter(torch.tensor([L]), requires_grad=True)
+    def forward(self,x0,zn,Smaps,SamplingMask,cg_iter=10):
+        p = x0[0] + self.L * zn[0]
+        r_now = torch.clone(p)
+        xn = torch.zeros_like(p)
+        for i in np.arange(cg_iter):
+            # q = (EHE + LI)p
+            q = sf.decode(sf.encode(p[None,:,:]),Smaps)[0] + self.L*p  
+            # rr_pq = r'r/p'q
+            rr_pq = torch.sum(r_now*torch.conj(r_now))/torch.sum(q*torch.conj(p)) 
+            xn = xn + rr_pq * p
+            r_next = r_now - rr_pq * q
+            # p = r_next + r_next'r_next/r_now'r_now
+            p = (r_next + 
+                 (torch.sum(r_next*torch.conj(r_next))/torch.sum(r_now*torch.conj(r_now))) * p)
+            r_now = torch.clone(r_next)
+        return xn[None,:,:]
+'''
 def DC_layer(x0,zn,L,S,mask,tol=0,cg_iter=10):
-    _,Nx,Ny = x0.shape
-    # xn = torch.zeros((Nx, Ny), dtype=torch.cfloat)
-    xn = x0[0,:,:]*0
-    a  = torch.squeeze(x0 + L*zn)
-    p  = a
-    r  = a
+    p = x0[0] + L * zn[0]
+    r_now = torch.clone(p)
+    xn = torch.zeros_like(p)
     for i in np.arange(cg_iter):
-        delta = torch.sum(r*torch.conj(r)).real/torch.sum(a*torch.conj(a)).real
-        if(delta<tol):
-            break
-        else:
-            p1 = p[None,:,:]
-            q  = torch.squeeze(sf.decode(sf.encode(p1,S,mask),S)) + L* p
-            t  = (torch.sum(r*torch.conj(r))/torch.sum(q*torch.conj(p)))
-            xn = xn + t*p 
-            rn = r  - t*q 
-            p  = rn + (torch.sum(rn*torch.conj(rn))/torch.sum(r*torch.conj(r)))*p
-            r  = rn
-            
+        # q = (EHE + LI)p
+        q = sf.decode(sf.encode(p[None,:,:],S,mask),S)[0] + L*p  
+        # rr_pq = r'r/p'q
+        rr_pq = torch.sum(r_now*torch.conj(r_now))/torch.sum(q*torch.conj(p)) 
+        xn = xn + rr_pq * p
+        r_next = r_now - rr_pq * q
+        # p = r_next + r_next'r_next/r_now'r_now
+        p = (r_next + 
+             (torch.sum(r_next*torch.conj(r_next))/torch.sum(r_now*torch.conj(r_now))) * p)
+        r_now = torch.clone(r_next)
     return xn[None,:,:]
 
 # define ResNet Block
