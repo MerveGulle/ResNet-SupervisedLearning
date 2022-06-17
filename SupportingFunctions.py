@@ -5,31 +5,13 @@ from torch.utils.data import DataLoader
 
 ### DEFINE FFT2 AND IFFT2 FUNCTIONS
 # y = FFT(x): FFT of one slice image to kspace: [1 Nx Ny Nc] --> [1 Nx Ny Nc]
-def fft2(img):
-    _, Nx, Ny, Nc = img.shape
-    # fft = torch.zeros((1, Nx, Ny, Nc), dtype=torch.cfloat)
-    fft = torch.zeros(img.shape).to(img.device)
-    for coil in np.arange(Nc):
-        A               = torch.squeeze(img[0,:,:,coil])
-        A               = torch.fft.ifftshift(A)
-        A               = torch.fft.fft2(A, norm='ortho')
-        fft[0,:,:,coil] = torch.fft.fftshift(A)
-
-    return fft
+def fft2 (image, axis=[1,2]):
+    return torch.fft.fftshift(torch.fft.fftn(torch.fft.ifftshift(image, dim=axis), dim=axis, norm='ortho'), dim=axis)
 
 # x = iFFT(y): iFFT of one slice kspace to image: [1 Nx Ny Nc] --> [1 Nx Ny Nc]
-def ifft2(kspace):
-    _, Nx, Ny, Nc = kspace.shape
-    # ifft = torch.zeros((1, Nx, Ny, Nc), dtype=torch.cfloat)
-    ifft = torch.zeros(kspace.shape).to(kspace.device)
-    
-    for coil in np.arange(Nc):
-        A                  = torch.squeeze(kspace[0,:,:,coil])
-        A                  = torch.fft.ifftshift(A)
-        A                  = torch.fft.ifft2(A, norm='ortho')
-        ifft[0,:,:,coil]   = torch.fft.fftshift(A)
+def ifft2 (kspace, axis=[1,2]):
+    return torch.fft.ifftshift(torch.fft.ifftn(torch.fft.fftshift(kspace, dim=axis), dim=axis, norm='ortho'), dim=axis)
 
-    return ifft
 
 # y = Ex: encoding one slice image to kspace: [1 Nx Ny] --> [1 Nx Ny Nc]
 # S: sensitivity map
@@ -61,8 +43,8 @@ def nmse(x,xref):
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
         f = h5py.File(data_path, "r")
-        start_slice = 0
-        r = 1
+        start_slice = 10
+        r = 40
         self.kspace    = f['kspace'][start_slice:start_slice+num_slice*r:r]
         self.kspace    = torch.from_numpy(self.kspace)
         
