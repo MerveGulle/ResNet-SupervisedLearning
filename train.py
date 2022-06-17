@@ -5,14 +5,13 @@ import random
 from matplotlib import pyplot as plt
 import SupportingFunctions as sf
 import sys
-from skimage.metrics import structural_similarity as ssim
 
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 100),
                ('batch_size', 1),
-               ('learning_rate', 1e-3),
+               ('learning_rate', 3e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -55,7 +54,7 @@ for epoch in range(params['num_epoch']):
         x0       = x0.to(device)
         xref     = xref.to(device)
         sens_map = sens_map.to(device)
-        kspace = kspace.to(device)
+        kspace   = kspace.to(device)
         # Forward pass
         xk = x0
         for k in range(params['K']):
@@ -105,7 +104,7 @@ for epoch in range(params['num_epoch']):
           torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
           torch.save(loss_arr, 'train_loss.pt')
           torch.save(loss_arr_valid, 'valid_loss.pt')
-          
+          torch.save(L, 'L.pt')
 #    scheduler.step()
     '''
     SSIM = (ssim(np.abs(xref.cpu().detach().numpy()[0,:,:]), 

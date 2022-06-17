@@ -17,28 +17,19 @@ def ifft2 (kspace, axis=[1,2]):
 # S: sensitivity map
 def encode(x,S,mask):
     if mask==None:
-        y = S*x[:,:,:,None]       # sensitivity map element-wise multiplication
-        y = fft2(y)             # Fourier transform
+        return fft2(S*x[:,:,:,None])
     else:
-        y = S*x[:,:,:,None]       # sensitivity map element-wise multiplication
-        y = fft2(y)             # Fourier transform
-        y = y*mask[None,:,:,None] # undersampling
-    return y
+        return fft2(S*x[:,:,:,None])*mask[None,:,:,None]
 
 # y = E'x: reconstruction from kspace to image space: [1 Nx Ny Nc] --> [1 Nx Ny]
 # S: sensitivity map
 def decode(x,S):
-    y = ifft2(x)               # Inverse fourier transform
-    y = y*torch.conj(S)
-    y = y.sum(axis=3)
-    return y 
+    return torch.sum(ifft2(x)*torch.conj(S), axis=3)
 
 # Normalised Mean Square Error (NMSE)
 # gives the nmse between x and xref
 def nmse(x,xref):
-    out1 = np.sum((x-xref)**2)
-    out2 = np.sum((xref)**2)
-    return out1/out2
+    return np.sum((x-xref)**2) / np.sum((xref)**2)
 
 class KneeDataset():
     def __init__(self,data_path,coil_path,R,num_slice,num_ACS=24):
