@@ -23,29 +23,6 @@ class RB(nn.Module):
 # L   : regularization coefficient=quadratic relaxation parameter
 # tol : tolerance for breaking the CG iteration
 # (EHE + LI)xn = x0 + L*zn, DC_layer solves xn
-'''
-class DC_layer(nn.Module):
-    def __init__(self, L):
-        super().__init__()
-        # initialization of quadratic relaxation parameter (mu)
-        self.L = nn.Parameter(torch.tensor([L]), requires_grad=True)
-    def forward(self,x0,zn,Smaps,SamplingMask,cg_iter=10):
-        p = x0[0] + self.L * zn[0]
-        r_now = torch.clone(p)
-        xn = torch.zeros_like(p)
-        for i in np.arange(cg_iter):
-            # q = (EHE + LI)p
-            q = sf.decode(sf.encode(p[None,:,:]),Smaps)[0] + self.L*p  
-            # rr_pq = r'r/p'q
-            rr_pq = torch.sum(r_now*torch.conj(r_now))/torch.sum(q*torch.conj(p)) 
-            xn = xn + rr_pq * p
-            r_next = r_now - rr_pq * q
-            # p = r_next + r_next'r_next/r_now'r_now
-            p = (r_next + 
-                 (torch.sum(r_next*torch.conj(r_next))/torch.sum(r_now*torch.conj(r_now))) * p)
-            r_now = torch.clone(r_next)
-        return xn[None,:,:]
-'''
 def DC_layer(x0,zn,L,S,mask,tol=0,cg_iter=10):
     p = x0[0] + L * zn[0]
     r_now = torch.clone(p)
@@ -85,7 +62,7 @@ class ResNet(nn.Module):
         self.RB15  = RB()
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
-        self.L = nn.Parameter(torch.tensor(0.0, requires_grad=True))
+        self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
     def forward(self, x):
         z = sf.ch1to2(x)[None,:,:,:].float()
         z = self.conv1(z)
