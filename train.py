@@ -9,9 +9,9 @@ import sys
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 100),
+params = dict([('num_epoch', 200),
                ('batch_size', 1),
-               ('learning_rate', 3e-4),
+               ('learning_rate', 1e-3),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -101,10 +101,10 @@ for epoch in range(params['num_epoch']):
             loss_arr_valid[epoch] += loss.item()/len(datasets['valid_dataset'])
         
         if ((epoch+1)%5==0):
-          torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
-          torch.save(loss_arr, 'train_loss.pt')
-          torch.save(loss_arr_valid, 'valid_loss.pt')
-          torch.save(L, 'L.pt')
+            torch.save(denoiser.state_dict(), 'model_t_' + f'_ResNet_{epoch+1:03d}'+ '.pt')
+            torch.save(loss_arr, 'train_loss.pt')
+            torch.save(loss_arr_valid, 'valid_loss.pt')
+            torch.save(L, 'L.pt')
 #    scheduler.step()
     '''
     SSIM = (ssim(np.abs(xref.cpu().detach().numpy()[0,:,:]), 

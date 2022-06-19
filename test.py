@@ -11,9 +11,9 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 print('Test code has been started.')
 
 ### HYPERPARAMETERS
-params = dict([('num_epoch', 100),
+params = dict([('num_epoch', 200),
                ('batch_size', 1),
-               ('learning_rate', 3e-4),
+               ('learning_rate', 1e-3),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -75,12 +75,12 @@ for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
         nmse_k = sf.nmse(xk,xref)
         nmse_c = sf.nmse(xc,xref)
         
-        figure = plt.figure()
+        figure = plt.figure(figsize=(368/54.5,320/54.5))
         plt.imshow(x0,cmap='gray')
-        plt.title(f'zero_filled_slice:{index.item():03d}')
+        plt.title(f'zero_filled_slice:{index.item():03d}', fontsize=20)
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_0:,.3f}'+'\n'+
-                              'SSIM:'+f'{ssim_0:,.3f}', fontsize = 12)
+                              'SSIM:'+f'{ssim_0:,.3f}', fontsize = 20)
         ax.xaxis.set_label_coords(0.17, 0.13)
         ax.xaxis.label.set_color('white')
         ax.set_yticklabels([])
@@ -88,12 +88,12 @@ for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
         #plt.show()
         figure.savefig('x0'+f'_{i:03d}'+'.png')   
         
-        figure = plt.figure()
+        figure = plt.figure(figsize=(368/54.5,320/54.5))
         plt.imshow(xc,cmap='gray')
-        plt.title(f'CG-SENSE_slice:{index.item():03d}')
+        plt.title(f'CG-SENSE_slice:{index.item():03d}', fontsize=20)
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_c:,.3f}'+'\n'+
-                              'SSIM:'+f'{ssim_c:,.3f}', fontsize = 12)
+                              'SSIM:'+f'{ssim_c:,.3f}', fontsize = 20)
         ax.xaxis.set_label_coords(0.17, 0.13)
         ax.xaxis.label.set_color('white')
         ax.set_yticklabels([])
@@ -101,12 +101,12 @@ for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
         #plt.show()
         figure.savefig('x'+f'_CG_{i:03d}'+'.png') 
         
-        figure = plt.figure()
+        figure = plt.figure(figsize=(368/54.5,320/54.5))
         plt.imshow(xk,cmap='gray')
-        plt.title(f'ResNet_slice:{index.item():03d}')
+        plt.title(f'ResNet_slice:{index.item():03d}', fontsize=20)
         ax = plt.gca()
         label = ax.set_xlabel('NMSE:'+f'{nmse_k:,.3f}'+'\n'+
-                              'SSIM:'+f'{ssim_k:,.3f}', fontsize = 12)
+                              'SSIM:'+f'{ssim_k:,.3f}', fontsize = 20)
         ax.xaxis.set_label_coords(0.17, 0.13)
         ax.xaxis.label.set_color('white')
         ax.set_yticklabels([])
@@ -114,9 +114,9 @@ for i, (x0, xref, kspace, sens_map, index) in enumerate(loaders['test_loader']):
         #plt.show()
         figure.savefig('x_ResNet'+f'_{i:03d}'+'.png') 
         
-        figure = plt.figure()
+        figure = plt.figure(figsize=(368/54.5,320/54.5))
         plt.imshow(xref,cmap='gray')
-        plt.title(f'reference_slice:{index.item():03d}')
+        plt.title(f'reference_slice:{index.item():03d}', fontsize=20)
         ax = plt.gca()
         ax.set_yticklabels([])
         ax.set_xticklabels([])

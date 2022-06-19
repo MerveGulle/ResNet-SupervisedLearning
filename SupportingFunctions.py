@@ -12,7 +12,6 @@ def fft2 (image, axis=[1,2]):
 def ifft2 (kspace, axis=[1,2]):
     return torch.fft.ifftshift(torch.fft.ifftn(torch.fft.fftshift(kspace, dim=axis), dim=axis, norm='ortho'), dim=axis)
 
-
 # y = Ex: encoding one slice image to kspace: [1 Nx Ny] --> [1 Nx Ny Nc]
 # S: sensitivity map
 def encode(x,S,mask):
