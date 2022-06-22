@@ -47,6 +47,8 @@ class KneeDataset():
         
         self.mask = torch.zeros((self.kspace.shape[1],self.kspace.shape[2]), dtype=torch.cfloat)
         self.mask[:,::R] = 1.0
+        self.mask[:,0:18] = 1.0
+        self.mask[:,-18:self.kspace.shape[2]] = 1.0
         self.mask[:,(self.kspace.shape[2]-num_ACS)//2:(self.kspace.shape[2]+num_ACS)//2] = 1.0
         
         self.x0   = torch.empty(self.kspace.shape[0:3], dtype=torch.cfloat)
