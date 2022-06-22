@@ -7,7 +7,7 @@ import SupportingFunctions as sf
 class RB(nn.Module):
     def __init__(self, C=0.1):
         super().__init__()
-        self.conv = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.conv = nn.Conv2d(64, 64, kernel_size=3, padding=1, bias=False)
         self.relu  = nn.ReLU()
         self.C     = C
     def forward(self, x):
@@ -44,7 +44,7 @@ def DC_layer(x0,zn,L,S,mask,tol=0,cg_iter=10):
 class ResNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.conv1 = nn.Conv2d(2, 64, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(2, 64, kernel_size=3, padding=1, bias=False)
         self.RB1   = RB()
         self.RB2   = RB()
         self.RB3   = RB()
@@ -60,8 +60,8 @@ class ResNet(nn.Module):
         self.RB13  = RB()
         self.RB14  = RB()
         self.RB15  = RB()
-        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1, bias=False)
+        self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1, bias=False)
         self.L = nn.Parameter(torch.tensor(0.05, requires_grad=True))
     def forward(self, x):
         z = sf.ch1to2(x)[None,:,:,:].float()
