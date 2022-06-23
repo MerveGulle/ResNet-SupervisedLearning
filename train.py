@@ -1,17 +1,18 @@
-import model_shared_weights as model
+import model
 import numpy as np
 import torch
 import random
 from matplotlib import pyplot as plt
 import SupportingFunctions as sf
 import sys
+from skimage.metrics import structural_similarity as ssim
 
 print('Training code has been started.')
 
 ### HYPERPARAMETERS
 params = dict([('num_epoch', 200),
                ('batch_size', 1),
-               ('learning_rate', 1e-3),
+               ('learning_rate', 3e-4),
                ('num_workers', 0),          # It should be 0 for Windows machines
                ('exp_num', 7),              # CHANGE EVERYTIME
                ('save_flag', False),
@@ -44,7 +45,7 @@ mask = dataset.mask.to(device)
 denoiser = model.ResNet().to(device)
 denoiser.apply(model.weights_init_normal)
 optimizer = torch.optim.Adam(denoiser.parameters(),lr=params['learning_rate'])
-#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
 loss_arr       = np.zeros(params['num_epoch'])
 loss_arr_valid = np.zeros(params['num_epoch'])
@@ -105,21 +106,21 @@ for epoch in range(params['num_epoch']):
             torch.save(loss_arr, 'train_loss.pt')
             torch.save(loss_arr_valid, 'valid_loss.pt')
             torch.save(L, 'L.pt')
-#    scheduler.step()
-    '''
+    scheduler.step()
+    
     SSIM = (ssim(np.abs(xref.cpu().detach().numpy()[0,:,:]), 
                  np.abs(xk.cpu().detach().numpy()[0,:,:]), 
                  data_range=np.abs(xref.cpu().detach().numpy()[0,:,:].max() 
                                    - np.abs(xref.cpu().detach().numpy()[0,:,:].min()))))
-    '''
+    
 
-    NMSE = sf.nmse(np.abs(xk[0].cpu().numpy()), np.abs(xref[0].cpu().numpy()))
+    #NMSE = sf.nmse(np.abs(xk[0].cpu().numpy()), np.abs(xref[0].cpu().numpy()))
     print ('-----------------------------')
     print (f'Epoch [{epoch+1}/{params["num_epoch"]}], \
            Loss training: {loss_arr[epoch]:.4f}, \
            Loss validation: {loss_arr_valid[epoch]:.4f},  \
            L: {L:.4f}, \
-           NMSE: {NMSE:.4f}')
+           SSIM: {SSIM:.4f}')
     print ('-----------------------------')
 
 figure = plt.figure()
